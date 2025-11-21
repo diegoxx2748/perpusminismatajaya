@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kontak Kami | e-Perpus Mini</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* CSS umum (Pastikan konsisten dengan yang lain) */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #ecf0f1; color: #343a3f; }
+        .container { max-width: 800px; margin: 50px auto; padding: 30px; background-color: white; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        h2 { color: #2ecc71; text-align: center; margin-bottom: 30px; font-size: 2em; border-bottom: 2px solid #2ecc71; padding-bottom: 10px; }
+        
+        .contact-info { margin-bottom: 30px; }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f8f8;
+            border-left: 5px solid #3498db;
+            border-radius: 4px;
+        }
+        .contact-item i {
+            font-size: 1.5em;
+            color: #3498db;
+            margin-right: 20px;
+            width: 30px;
+            text-align: center;
+        }
+        .contact-item p { margin: 0; }
+        .contact-item a { color: #3498db; text-decoration: none; }
+        .contact-item a:hover { text-decoration: underline; }
+
+        /* Dark Mode */
+        body.dark-mode { background-color: #2c3e50; color: #ecf0f1; }
+        body.dark-mode .container { background-color: #34495e; box-shadow: 0 8px 16px rgba(255,255,255,0.1); }
+        body.dark-mode h2 { color: #2ecc71; }
+        body.dark-mode .contact-item { background-color: #3e5264; border-left: 5px solid #5faee8; }
+        
+        /* Posisi Dark Mode Toggle (Sama dengan index.html) */
+        #mode-toggle {
+            position: fixed;
+            top: 25px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #343a3f; 
+            font-size: 1.5em;
+            z-index: 1000;
+        }
+        body.dark-mode #mode-toggle { color: white; }
+    </style>
+</head>
+<body id="body-content">
+    
+    {% include 'header.html' %} 
+    <button id="mode-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+
+    <div class="container">
+        <h2><i class="fas fa-headset"></i> Hubungi Kami</h2>
+        
+        <p style="text-align: center; margin-bottom: 40px;">Kami senang mendengar masukan dari Anda! Silakan hubungi kami melalui saluran di bawah ini.</p>
+
+        <div class="contact-info">
+            <div class="contact-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <p><strong>Alamat:</strong> Jl. Selomangleng No.2, Sukorame, Kec. Mojoroto, Kota Kediri, Jawa Timur 64114</p>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-envelope"></i>
+                <p><strong>Web Resmi:</strong> <a href="smatarunakediri.sch.id">smatarunakediri.sch.id</a></p>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-phone"></i>
+                <p><strong>Telepon:</strong> <a href="tel: (0354) 771074"> (0354) 771074</a></p>
+            </div>
+            <div class="contact-item">
+                <i class="fab fa-instagram"></i>
+                <p><strong>Instagram:</strong> <a href="https://instagram.com/sma.taruna.brawijaya" target="_blank">@smatarunabrawijaya</a></p>
+            </div>
+        </div>
+        
+        <p style="text-align: center; margin-top: 40px; font-style: italic;">Untuk masalah teknis inventori, silakan login sebagai Admin.</p>
+    </div>
+    
+    <script>
+        // Dark Mode Logic (Harus diulang di setiap file HTML)
+        const modeToggle = document.getElementById('mode-toggle');
+        const body = document.body;
+        
+        function checkDarkMode() {
+            if (localStorage.getItem('dark-mode') === 'enabled') {
+                body.classList.add('dark-mode');
+                modeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                body.classList.remove('dark-mode');
+                modeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+        
+        modeToggle.addEventListener('click', () => {
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'disabled');
+            } else {
+                localStorage.setItem('dark-mode', 'enabled');
+            }
+            checkDarkMode();
+        });
+        checkDarkMode();
+    </script>
+</body>
+</html>

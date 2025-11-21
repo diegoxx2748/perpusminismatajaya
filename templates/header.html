@@ -1,0 +1,71 @@
+<style>
+    .navbar {
+        background-color: #34495e; /* Biru gelap */
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        padding: 8px 15px;
+        margin: 0 5px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+    .navbar a:hover, .navbar a.active {
+        background-color: #2c3e50; /* Warna hover */
+    }
+    .nav-links {
+        display: flex;
+        align-items: center;
+    }
+    .nav-links .status-admin {
+        margin-left: 20px;
+        padding: 5px 10px;
+        background-color: #2ecc71;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+    .nav-links .logout-link {
+        margin-left: 10px;
+        background-color: #e74c3c;
+    }
+    .logo-container { /* Tambahkan style untuk kontainer logo */
+        display: flex;
+        align-items: center;
+        gap: 5px; /* Jarak antara logo dan teks, diperbesar */
+    }
+    .logo-img { /* Style untuk gambar logo, diperbesar */
+        height: 100px; /* Sesuaikan ukuran, dari 30px menjadi 45px */
+        width: auto;
+        border-radius: 4px; /* Sedikit lengkungan pada sudut */
+    }
+</style>
+
+<div class="navbar">
+    <div class="logo-container"> <img src="{{ url_for('static', filename='images/logo_perpus.png') }}" alt="e-Perpus Logo" class="logo-img">
+        <a href="{{ url_for('home') }}" style="font-size: 1.5em; font-weight: bold;">e-Perpus Mini</a>
+    </div>
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}" {% if request.path == url_for('home') or request.path == '/' %}class="active"{% endif %}>
+            <i class="fas fa-home"></i> Beranda
+        </a>
+        <a href="{{ url_for('index') }}" {% if request.path.startswith('/inventori') %}class="active"{% endif %}>
+            <i class="fas fa-list-ul"></i> Inventori
+        </a>
+        <a href="{{ url_for('contact') }}" {% if request.path == url_for('contact') %}class="active"{% endif %}>
+            <i class="fas fa-headset"></i> Kontak Kami
+        </a>
+
+        {% if logged_in %}
+            <span class="status-admin"><i class="fas fa-user-shield"></i> Admin Aktif</span>
+            <a href="{{ url_for('logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login Admin</a>
+        {% endif %}
+    </div>
+</div>
