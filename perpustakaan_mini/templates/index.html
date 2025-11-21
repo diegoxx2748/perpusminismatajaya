@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventori Buku | e-Perpus Mini</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2ecc71; 
+            --secondary-color: #f8f9fa;
+            --accent-color: #27ae60;
+            --danger-color: #e74c3c;
+            --text-color: #343a3f;
+            --bg-color: #ecf0f1;
+            --card-bg: white;
+            --shadow-color: rgba(0,0,0,0.15);
+        }
+        
+        /* DARK MODE STYLES */
+        body.dark-mode {
+            --text-color: #ecf0f1;
+            --bg-color: #2c3e50;
+            --card-bg: #34495e;
+            --shadow-color: rgba(255,255,255,0.1);
+            --secondary-color: #3e5264;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 0; /* Ubah dari 50px */
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px var(--shadow-color);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .section-title {
+            font-size: 1.8em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        /* Form, Tombol, Card */
+        #form-container { background-color: var(--secondary-color); padding: 25px; border-radius: 8px; margin-bottom: 30px; }
+        .form-input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        
+        /* Modifikasi untuk textarea Sinopsis */
+        #input_sinopsis {
+            flex-grow: 1; 
+            padding: 12px; 
+            border: 1px solid #ced4da; 
+            border-radius: 6px;
+            resize: vertical; 
+            min-height: 80px;
+        }
+        
+        .form-input-group input[type="text"], 
+        .form-input-group input[type="number"],
+        .form-input-group input[type="file"] { 
+            flex-grow: 1; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; 
+            background-color: white; 
+            color: var(--text-color);
+        }
+        body.dark-mode .form-input-group input, body.dark-mode #input_sinopsis { 
+            background-color: #49637e; color: var(--text-color); border: 1px solid #3e5264; 
+        }
+        
+        button.btn { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.3s ease; }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: var(--accent-color); }
+        .btn-edit { background-color: #f39c12; color: white; }
+        .btn-edit:hover { background-color: #e67e22; }
+        .btn-delete { background-color: var(--danger-color); }
+        .btn-delete:hover { background-color: #c0392b; }
+        .btn-info-detail { background-color: #3498db; padding: 8px 15px; font-size: 0.9em;}
+        .btn-info-detail:hover { background-color: #2980b9; }
+
+        /* Ukuran Cover Buku di Daftar Inventori (DIPERBESAR) */
+        .book-cover {
+            width: 90px; 
+            height: 130px; 
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-right: 15px; 
+            flex-shrink: 0;
+        }
+        .no-cover {
+            width: 90px; 
+            height: 130px; 
+            background-color: #bdc3c7;
+            color: #333;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em; 
+            text-align: center;
+            border-radius: 4px;
+            margin-right: 15px;
+            flex-shrink: 0;
+            line-height: 1.2;
+        }
+        .no-cover .fas {
+            font-size: 3em; 
+            margin-bottom: 5px;
+        }
+        
+        /* Dark Mode Toggle */
+        #mode-toggle {
+            position: fixed;
+            top: 25px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-color); /* Ikuti warna teks umum */
+            font-size: 1.5em;
+            z-index: 1000;
+        }
+        body.dark-mode #mode-toggle { color: white; }
+        
+        /* Flash Messages */
+        .flash-message {
+            position: fixed;
+            top: 60px; /* Geser ke bawah navbar */
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 4.5s forwards;
+        }
+        .flash-success { background-color: #28a745; color: white; }
+        .flash-danger { background-color: #dc3545; color: white; }
+        .flash-info { background-color: #17a2b8; color: white; }
+        @keyframes slideIn { from { top: 0px; opacity: 0; } to { top: 70px; opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; display: none; } }
+
+        /* Paginasi dan Sortir Styles */
+        .pagination-container { text-align: center; margin-top: 20px; }
+        .pagination-link { display: inline-block; padding: 8px 12px; margin: 0 5px; border: 1px solid var(--primary-color); border-radius: 4px; text-decoration: none; color: var(--primary-color); transition: background-color 0.3s; }
+        .pagination-link:hover { background-color: var(--primary-color); color: white; }
+        .pagination-current { background-color: var(--primary-color); color: white; font-weight: bold; }
+        
+        .sort-header { cursor: pointer; color: var(--primary-color); }
+        .sort-arrow { margin-left: 5px; font-size: 0.8em; }
+        
+        /* Penyesuaian Grid untuk Daftar Buku (Kolom Cover DIUBAH) */
+        .book-grid { 
+            grid-template-columns: 100px 0.5fr 3fr 2fr 1fr 1.5fr 1fr; 
+            display: grid; 
+            gap: 10px; 
+            align-items: center; 
+            margin-bottom: 5px; 
+        }
+        .book-card {
+            grid-column: 1 / span 7; 
+            grid-template-columns: 100px 0.5fr 3fr 2fr 1fr 1.5fr 1fr; 
+            display: grid;
+            align-items: center;
+            padding: 15px; 
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s;
+        }
+        .book-card:hover {
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+        .book-card > span:first-child { 
+             display: flex;
+             align-items: center;
+        }
+        .book-actions {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end; 
+        }
+        
+        /* --- MODAL STYLES --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 10001; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 5% auto; 
+            padding: 25px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 650px; 
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation-name: animatetop;
+            animation-duration: 0.4s
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.8em;
+        }
+
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--danger-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            display: flex;
+            gap: 25px; 
+            align-items: flex-start;
+        }
+        
+        /* Ukuran Cover di Modal (DIPERBESAR) */
+        .modal-cover {
+            width: 200px; 
+            height: 280px; 
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            flex-shrink: 0;
+        }
+        
+        .modal-info {
+            flex-grow: 1;
+        }
+
+        .modal-info p {
+            margin: 10px 0; 
+            line-height: 1.5;
+            font-size: 1.1em;
+        }
+        
+        .modal-info strong {
+            color: var(--accent-color);
+            display: inline-block;
+            min-width: 100px; 
+            font-weight: bold;
+        }
+        
+        /* Tambahan style untuk Sinopsis di Modal */
+        #modalSinopsis {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ccc;
+            line-height: 1.6;
+            font-size: 1em;
+            text-align: justify;
+        }
+
+        /* Animasi Modal */
+        @-webkit-keyframes animatetop {
+            from {top:-300px; opacity:0} 
+            to {top:0; opacity:1}
+        }
+
+        @keyframes animatetop {
+            from {top:-300px; opacity:0}
+            to {top:0; opacity:1}
+        }
+        /* --- END MODAL STYLES --- */
+
+        /* Search & Stats */
+        .search-stats-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #searchInput {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            max-width: 400px; 
+            margin-right: 15px;
+        }
+        .stats-box {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* Chart Container (DIPERKECIL) */
+        .chart-container {
+            width: 70%; 
+            max-width: 600px; 
+            margin: auto; 
+            margin-bottom: 40px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .modal-body { flex-direction: column; align-items: center; gap: 15px; }
+            .modal-info { text-align: center; }
+            .modal-info strong { min-width: unset; display: block; }
+            .book-grid, .book-card {
+                grid-template-columns: 90px 1fr; 
+                row-gap: 5px;
+            }
+            .chart-container {
+                width: 90%; 
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-stats-container { flex-direction: column; align-items: stretch; }
+            #searchInput { max-width: 100%; margin-bottom: 10px; margin-right: 0; }
+        }
+    </style>
+</head>
+<body id="body-content">
+    
+    {% include 'header.html' %} 
+
+    <button id="mode-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+
+    <div id="preloader">
+        <div class="loader"></div>
+        <p style="color: var(--primary-color); font-weight: bold;">Memuat Inventori...</p>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        {% if logged_in %}
+        <div id="form-container">
+            <h2 class="section-title"><i class="fas fa-plus-circle"></i> Tambah / Ubah Data Buku</h2>
+            <form id="bookForm" method="POST" action="{{ url_for('index') }}" onsubmit="return validateForm()" 
+                  enctype="multipart/form-data"> 
+                <input type="hidden" name="buku_id" id="buku_id" value="">
+                
+                <div class="form-input-group">
+                    <input type="text" name="judul" id="input_judul" placeholder="Judul Buku" required>
+                    <input type="text" name="penulis" id="input_penulis" placeholder="Penulis" required>
+                    <input type="number" name="tahun" id="input_tahun" placeholder="Tahun Terbit (Contoh: 2023)" min="1900" max="2099">
+                </div>
+                
+                <div class="form-input-group">
+                    <textarea name="sinopsis" id="input_sinopsis" placeholder="Sinopsis Singkat Buku (Maksimal 500 karakter)"></textarea>
+                </div>
+                
+                <div class="form-input-group">
+                    <input type="file" name="cover" id="input_cover" accept="image/png, image/jpeg, image/gif">
+                    <span id="current_cover_info" style="display:none; color: #6c757d; align-self: center;"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitButton"><i class="fas fa-save"></i> Tambah Buku</button>
+                <button type="button" class="btn btn-secondary" style="display:none;" id="cancelButton" onclick="resetForm()">Batal Ubah</button>
+                <div id="validation-errors" style="color: var(--danger-color); margin-top: 10px;"></div>
+            </form>
+        </div>
+
+        <hr>
+        {% endif %}
+
+        <h2 class="section-title"><i class="fas fa-chart-bar"></i> Analisis Inventori Berdasarkan Tahun Terbit</h2>
+        <div class="chart-container">
+            <canvas id="tahunChart"></canvas>
+        </div>
+
+        <hr>
+
+        <h2 class="section-title"><i class="fas fa-list-ul"></i> Inventori Buku</h2>
+        
+        <div class="search-stats-container">
+            <input type="text" id="searchInput" onkeyup="filterBooks()" placeholder="🔍 Cari Judul, Penulis, atau Tahun di Halaman ini..." title="Ketik untuk mencari">
+            <div class="stats-box">Total Buku: <span id="totalBuku">{{ total_buku }}</span></div>
+        </div>
+        
+        <div class="book-grid" style="background-color: var(--secondary-color); padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: bold;">
+            <span>Cover</span>
+            <div class="sort-header" onclick="sortData('id')">ID 
+                {% if sort_by == 'id' %}<i class="fas fa-arrow-{{ 'up' if sort_order == 'ASC' else 'down' }} sort-arrow"></i>{% endif %}
+            </div>
+            <div class="sort-header" onclick="sortData('judul')">Judul 
+                {% if sort_by == 'judul' %}<i class="fas fa-arrow-{{ 'up' if sort_order == 'ASC' else 'down' }} sort-arrow"></i>{% endif %}
+            </div>
+            <div class="sort-header" onclick="sortData('penulis')">Penulis 
+                {% if sort_by == 'penulis' %}<i class="fas fa-arrow-{{ 'up' if sort_order == 'ASC' else 'down' }} sort-arrow"></i>{% endif %}
+            </div>
+            <div class="sort-header" onclick="sortData('tahun')">Tahun
+                {% if sort_by == 'tahun' %}<i class="fas fa-arrow-{{ 'up' if sort_order == 'ASC' else 'down' }} sort-arrow"></i>{% endif %}
+            </div>
+            <span>Aksi Admin</span>
+            <span>Detail</span> 
+        </div>
+
+        <div class="book-list-container" id="bookGrid">
+            {% for buku in daftar_buku %}
+            <div class="book-card" 
+                 data-judul="{{ buku.judul|e }}" 
+                 data-penulis="{{ buku.penulis|e }}" 
+                 data-tahun="{{ buku.tahun or '' }}" 
+                 data-id="{{ buku.id }}" 
+                 data-cover="{{ buku.cover_path or '' }}"
+                 data-sinopsis="{{ buku.sinopsis|e }}"> 
+                
+                <span>
+                    {% if buku.cover_path %}
+                        <img src="{{ url_for('uploaded_file', filename=buku.cover_path) }}" alt="Cover {{ buku.judul }}" class="book-cover">
+                    {% else %}
+                        <div class="no-cover"><i class="fas fa-book"></i> No Cover</div>
+                    {% endif %}
+                </span>
+
+                <span data-label="ID">{{ buku.id }}</span>
+                <span data-label="Judul">{{ buku.judul }}</span>
+                <span data-label="Penulis">{{ buku.penulis }}</span>
+                <span data-label="Tahun">{{ buku.tahun }}</span>
+                
+                <div class="book-actions">
+                    {% if logged_in %}
+                        <button class="btn btn-edit" onclick="setEditMode({{ buku.id }}, '{{ buku.judul|e }}', '{{ buku.penulis|e }}', {{ buku.tahun or 'null' }}, '{{ buku.cover_path or '' }}', '{{ buku.sinopsis|e }}')"><i class="fas fa-pen"></i></button>
+                        <form method="POST" action="{{ url_for('hapus_buku', id=buku.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-delete" onclick="return confirm('Yakin hapus?');"><i class="fas fa-trash-alt"></i></button>
+                        </form>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <button class="btn btn-info-detail" onclick="showBookDetail(this)">
+                        <i class="fas fa-info-circle"></i> Detail
+                    </button>
+                </div>
+            </div>
+            {% else %}
+                <p style="text-align: center;">Tidak ada buku di halaman ini.</p>
+            {% endfor %}
+        </div>
+        <p id="noResults" style="text-align: center; margin-top: 30px; font-size: 1.2em; display: none;">😥 Tidak ada buku yang ditemukan sesuai kriteria pencarian.</p>
+
+        <div class="pagination-container">
+            {% if total_pages > 1 %}
+                {% set prev_url = url_for('index', page=page - 1, sort_by=sort_by, sort_order=sort_order) %}
+                {% set next_url = url_for('index', page=page + 1, sort_by=sort_by, sort_order=sort_order) %}
+                
+                {% if page > 1 %}
+                    <a href="{{ prev_url }}" class="pagination-link"><i class="fas fa-angle-left"></i> Sebelumnya</a>
+                {% endif %}
+                
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                        <span class="pagination-link pagination-current">{{ p }}</span>
+                    {% else %}
+                        <a href="{{ url_for('index', page=p, sort_by=sort_by, sort_order=sort_order) }}" class="pagination-link">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page < total_pages %}
+                    <a href="{{ next_url }}" class="pagination-link">Berikutnya <i class="fas fa-angle-right"></i></a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+    </div>
+    
+    <div id="bookDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle"></h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <img id="modalCover" class="modal-cover" alt="Cover Buku">
+                <div class="modal-info">
+                    <p><strong>ID Buku:</strong> <span id="modalId"></span></p>
+                    <p><strong>Penulis:</strong> <span id="modalPenulis"></span></p>
+                    <p><strong>Tahun Terbit:</strong> <span id="modalTahun"></span></p>
+                </div>
+            </div>
+            <div id="modalSinopsis">
+                <h4>Sinopsis</h4>
+                <p id="sinopsisText"></p>
+            </div>
+            <p style="margin-top: 15px; font-style: italic; font-size: 0.9em; text-align: right;">Informasi ini diambil langsung dari database.</p>
+        </div>
+    </div>
+    
+    <script>
+        
+        // --- Dark Mode Toggle ---
+        const modeToggle = document.getElementById('mode-toggle');
+        const body = document.body;
+
+        function checkDarkMode() {
+            if (localStorage.getItem('dark-mode') === 'enabled') {
+                body.classList.add('dark-mode');
+                modeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                body.classList.remove('dark-mode');
+                modeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+        
+        modeToggle.addEventListener('click', () => {
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'disabled');
+            } else {
+                localStorage.setItem('dark-mode', 'enabled');
+            }
+            checkDarkMode();
+            loadChart(); // Update chart
+        });
+        
+        checkDarkMode(); 
+
+        // --- Preloader Logic ---
+        window.addEventListener('load', function() {
+            loadChart(); 
+            var preloader = document.getElementById('preloader');
+            setTimeout(function() {
+                preloader.style.opacity = '0';
+                setTimeout(function() {
+                    preloader.style.display = 'none';
+                }, 500); 
+            }, 500); 
+        });
+
+        // --- Fungsi Edit dan Reset Form ---
+        function setEditMode(id, judul, penulis, tahun, cover_path, sinopsis) {
+            var tahunValue = tahun === null || tahun === 'null' ? '' : tahun;
+            
+            document.getElementById('input_judul').value = judul;
+            document.getElementById('input_penulis').value = penulis;
+            document.getElementById('input_tahun').value = tahunValue;
+            
+            const cleanSinopsis = sinopsis
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&');
+            document.getElementById('input_sinopsis').value = cleanSinopsis;
+            
+            document.getElementById('buku_id').value = id;
+            
+            const coverInfo = document.getElementById('current_cover_info');
+            if (cover_path) {
+                const display_name = cover_path.substring(cover_path.indexOf('_') + 1);
+                coverInfo.innerHTML = `Cover saat ini: **${display_name}**<br>Ganti jika perlu.`;
+                coverInfo.style.display = 'block';
+            } else {
+                coverInfo.innerHTML = `Belum ada cover. Pilih file untuk ditambahkan.`;
+                coverInfo.style.display = 'block';
+            }
+
+            document.getElementById('submitButton').innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+            document.getElementById('submitButton').classList.add('btn-edit');
+            document.getElementById('submitButton').classList.remove('btn-primary');
+            
+            var form = document.getElementById('bookForm');
+            form.action = '/'+id+'/edit'; 
+            form.method = 'POST';
+
+            document.getElementById('cancelButton').style.display = 'inline-block';
+            document.getElementById('validation-errors').innerHTML = ''; 
+            document.getElementById('validation-errors').style.border = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            var form = document.getElementById('bookForm');
+            form.reset();
+            form.action = "{{ url_for('index') }}"; // Pertahankan 'index'
+            document.getElementById('buku_id').value = '';
+
+            document.getElementById('submitButton').innerHTML = '<i class="fas fa-save"></i> Tambah Buku';
+            document.getElementById('submitButton').classList.add('btn-primary');
+            document.getElementById('submitButton').classList.remove('btn-edit');
+            document.getElementById('cancelButton').style.display = 'none';
+            document.getElementById('validation-errors').innerHTML = '';
+            document.getElementById('validation-errors').style.border = 'none';
+            
+            document.getElementById('current_cover_info').style.display = 'none';
+        }
+
+        // --- Fungsi Validasi ---
+        function validateForm() {
+            const judul = document.getElementById('input_judul').value.trim();
+            const penulis = document.getElementById('input_penulis').value.trim();
+            const tahun = document.getElementById('input_tahun').value.trim();
+            const sinopsis = document.getElementById('input_sinopsis').value.trim();
+            const errors = document.getElementById('validation-errors');
+            errors.innerHTML = '';
+            
+            if (judul.length < 3 || judul.length > 100) {
+                errors.innerHTML += '<li>Judul harus antara 3 sampai 100 karakter.</li>';
+            }
+            if (penulis.length < 3 || penulis.length > 100) {
+                errors.innerHTML += '<li>Penulis harus antara 3 sampai 100 karakter.</li>';
+            }
+            
+            if (tahun) {
+                const currentYear = new Date().getFullYear();
+                const yearInt = parseInt(tahun);
+                if (isNaN(yearInt) || yearInt < 1900 || yearInt > currentYear + 1) {
+                    errors.innerHTML += `<li>Tahun harus berupa angka antara 1900 dan ${currentYear + 1}.</li>`;
+                }
+            }
+
+            if (sinopsis.length > 500) {
+                errors.innerHTML += '<li>Sinopsis tidak boleh lebih dari 500 karakter.</li>';
+            }
+
+            if (errors.innerHTML) {
+                errors.style.border = '1px solid var(--danger-color)';
+                errors.style.padding = '10px';
+                errors.style.borderRadius = '5px';
+                return false;
+            }
+            return true;
+        }
+
+
+        // --- Fungsi Detail Modal ---
+        const detailModal = document.getElementById('bookDetailModal');
+
+        function showBookDetail(button) {
+            const card = button.closest('.book-card');
+            const judul = card.getAttribute('data-judul');
+            const penulis = card.getAttribute('data-penulis');
+            const tahun = card.getAttribute('data-tahun');
+            const id = card.getAttribute('data-id');
+            const coverPath = card.getAttribute('data-cover');
+            
+            let sinopsis = card.getAttribute('data-sinopsis');
+            sinopsis = sinopsis.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+
+
+            document.getElementById('modalTitle').textContent = judul;
+            document.getElementById('modalId').textContent = id;
+            document.getElementById('modalPenulis').textContent = penulis;
+            document.getElementById('modalTahun').textContent = tahun || 'Tidak Dicantumkan';
+            
+            const coverElement = document.getElementById('modalCover');
+            if (coverPath) {
+                coverElement.src = "{{ url_for('uploaded_file', filename='') }}" + coverPath;
+            } else {
+                coverElement.src = ""; 
+                coverElement.alt = "No Cover Available";
+                coverElement.style.backgroundColor = '#ccc';
+                coverElement.style.textAlign = 'center';
+                coverElement.style.lineHeight = '280px';
+                coverElement.alt = "Tidak Ada Cover";
+            }
+            
+            document.getElementById('sinopsisText').textContent = sinopsis || 'Sinopsis tidak tersedia.';
+
+            detailModal.style.display = "block";
+        }
+
+        function closeModal() {
+            detailModal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == detailModal) {
+                closeModal();
+            }
+        }
+        
+        // --- Filter/Search Logic ---
+        function filterBooks() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toUpperCase();
+            const container = document.getElementById('bookGrid');
+            const cards = container.getElementsByClassName('book-card');
+            let found = 0;
+
+            for (let i = 0; i < cards.length; i++) {
+                const title = cards[i].getAttribute('data-judul');
+                const author = cards[i].getAttribute('data-penulis');
+                const year = cards[i].getAttribute('data-tahun');
+                
+                if (title.toUpperCase().includes(filter) || 
+                    author.toUpperCase().includes(filter) || 
+                    year.toUpperCase().includes(filter)) {
+                    cards[i].style.display = "grid";
+                    cards[i].style.backgroundColor = cards[i].querySelector('.book-actions') ? 'var(--card-bg)' : 'var(--secondary-color)';
+                    found++;
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+
+            document.getElementById('noResults').style.display = (found === 0 && cards.length > 0) ? "block" : "none";
+        }
+
+        // --- Sorting Logic ---
+        function sortData(sortBy) {
+            const currentUrl = new URL(window.location.href);
+            const currentSort = currentUrl.searchParams.get('sort_by') || 'id';
+            const currentOrder = currentUrl.searchParams.get('sort_order') || 'ASC';
+
+            let newOrder = 'ASC';
+            if (currentSort === sortBy && currentOrder === 'ASC') {
+                newOrder = 'DESC';
+            }
+
+            currentUrl.searchParams.set('sort_by', sortBy);
+            currentUrl.searchParams.set('sort_order', newOrder);
+            currentUrl.searchParams.set('page', 1); // Reset ke halaman 1 setelah sort
+            
+            window.location.href = currentUrl.href;
+        }
+
+        // --- Chart Logic ---
+        let chartInstance;
+
+        async function loadChart() {
+            try {
+                const response = await fetch('{{ url_for("statistik_tahun") }}');
+                const data = await response.json();
+                
+                const ctx = document.getElementById('tahunChart').getContext('2d');
+                
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Jumlah Buku',
+                            data: data.data,
+                            backgroundColor: '#3498db', // Biru
+                            borderColor: '#2980b9',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    color: body.classList.contains('dark-mode') ? 'white' : 'black'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: body.classList.contains('dark-mode') ? 'white' : 'black'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false 
+                            },
+                            title: {
+                                display: true,
+                                text: 'Distribusi Buku Berdasarkan Tahun Terbit',
+                                color: body.classList.contains('dark-mode') ? 'white' : 'black'
+                            }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error("Gagal memuat data chart:", error);
+            }
+        }
+    </script>
+</body>
+</html>
